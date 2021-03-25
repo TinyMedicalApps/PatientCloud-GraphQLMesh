@@ -1,0 +1,14 @@
+{
+  "name": "tinymedical-graphql-api",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "mesh serve"
+  },
+  "dependencies": {
+    "@graphql-mesh/cli": "^0.11.6",
+    "@graphql-mesh/openapi": "^0.10.1",
+    "@graphql-mesh/json-schema": "^0.7.1",
+    "graphql": "^15.3.0"
+  }
+}

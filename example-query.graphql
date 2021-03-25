@@ -1,0 +1,14 @@
+{
+  findCitiesUsingGET(namePrefix: "London") {
+    data {
+      name
+      breweries {
+        name
+        street
+        city
+        state
+        country
+      }
+    }
+  }
+}
