@@ -7,8 +7,9 @@
   },
   "dependencies": {
     "@graphql-mesh/cli": "^0.11.6",
-    "@graphql-mesh/openapi": "^0.10.1",
+    "@graphql-mesh/fhir": "^0.10.0",
     "@graphql-mesh/json-schema": "^0.7.1",
+    "@graphql-mesh/openapi": "^0.10.1",
     "graphql": "^15.3.0"
   }
 }

@@ -1,38 +1,8 @@
 sources:
-  - name: GeoDB
+  - name: LogicaHealth Sandbox v3
     handler:
-        openapi:
-          source: https://wirefreethought.github.io/geodb-cities-api-docs/swagger.json
-          baseUrl: http://geodb-free-service.wirefreethought.com/v1/
-  - name: OpenBrewery
-    handler:
-      jsonSchema:
-        baseUrl: https://api.openbrewerydb.org
-        operations:
-          - type: Query
-            field: breweries
-            path: breweries
-            method: GET
-            requestSample: ./src/openbrewery/breweriesInputSample.json
-            responseSample: ./src/openbrewery/breweriesSample.json
-
-additionalTypeDefs: |
-      extend type PopulatedPlaceSummary {
-          breweries: [BreweriesSampleJsonResponse]
-      }
-
-additionalResolvers:
-  - type: PopulatedPlaceSummary
-    field: breweries
-    requiredSelectionSet: |
-      { 
-        name 
-      }
-    targetSource: OpenBrewery
-    targetMethod: breweries
-    args:
-      "input.by_city": '{root.name}'
+        fhir:
+          endpoint: https://api.logicahealth.org/tmpocfhir3/open
 
 serve:
   port: 4000
-  exampleQuery: ./example-query.graphql
