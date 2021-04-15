@@ -2,7 +2,7 @@ sources:
   - name: LogicaHealth Sandbox v3
     handler:
         fhir:
-          endpoint: https://api.logicahealth.org/tmpocfhir3/open
+          endpoint: https://api.logicahealth.org/PatientCloud10STU3/open
 
 serve:
   port: 4000
