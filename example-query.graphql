@@ -1,0 +1,7 @@
+{
+  MedicationRequestByPatient(PatientID:"SMART-665677") {
+    entry {
+      fullUrl
+    }
+  }
+}
