@@ -1,21 +1,25 @@
-{
-  MedicationRequestByPatient(PatientID:"SMART-665677") {
-    entry {
-      resource {
-        ... on MedicationRequest {
-          dosageInstruction {
-            text
-          }
-          medicationCodeableConcept {
-            text
-          }
-          dispenseRequest{
-            extension {
-              id
-            }
+fragment MedicationRequestCore on Bundle {
+  entry {
+    resource {
+      ... on MedicationRequest {
+        dosageInstruction {
+          text
+        }
+        medicationCodeableConcept {
+          text
+        }
+        dispenseRequest{
+          extension {
+            id
           }
         }
       }
     }
   }
+}
+
+{
+  MedicationRequestByPatient(PatientID:"SMART-665677") {
+    ... MedicationRequestCore
+  }  
 }
