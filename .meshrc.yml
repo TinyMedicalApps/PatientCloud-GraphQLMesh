@@ -5,5 +5,18 @@ sources:
           endpoint: https://api.logicahealth.org/PatientCloud10STU3/open
 
 serve:
-  port: 4000
   exampleQuery: ./example-queries/*.graphql
+  port: 4000
+  cors:
+    origin: "*"
+    allowedHeaders: 
+      - "Origin"
+      - "Content-Type"
+      - "Authorization"
+      - "Partner-Company"
+      - "X-Requested-With"
+    exposedHeaders:
+      - "access-control-allow-headers"
+      - "access-control-allow-methods"
+      - "access-control-allow-origin"
+      - "content-type"
