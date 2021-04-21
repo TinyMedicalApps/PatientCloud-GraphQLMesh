@@ -6,8 +6,8 @@
     "start": "mesh serve"
   },
   "dependencies": {
-    "@graphql-mesh/cli": "^0.11.6",
-    "@graphql-mesh/fhir": "^0.10.0",
-    "graphql": "^15.3.0"
+    "@graphql-mesh/cli": "0.11.6",
+    "@graphql-mesh/fhir": "0.10.0",
+    "graphql": "15.3.0"
   }
 }
