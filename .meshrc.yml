@@ -6,7 +6,7 @@ sources:
 
 serve:
   exampleQuery: ./example-queries/*.graphql
-  port: 4000
+  port: ${PORT?}
   cors:
     origin: 
       - "*"
