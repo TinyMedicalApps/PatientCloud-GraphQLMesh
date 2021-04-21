@@ -1,0 +1,21 @@
+{
+  MedicationRequestByPatient(PatientID:"SMART-665677") {
+    entry {
+      resource {
+        ... on MedicationRequest {
+          dosageInstruction {
+            text
+          }
+          medicationCodeableConcept {
+            text
+          }
+          dispenseRequest{
+            extension {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+}
