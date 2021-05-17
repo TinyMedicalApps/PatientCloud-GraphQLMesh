@@ -2,21 +2,22 @@ fragment MedicationRequestCore on Bundle {
   entry {
     resource {
       ... on MedicationRequest {
-        dosageInstruction {
-          text
-        }
         medicationCodeableConcept {
           text
         }
+        dosageInstruction {
+          text
+        }
         dispenseRequest{
-          extension {
-            id
-          }
+          numberOfRepeatsAllowed
+          quantity{value,unit}
+          expectedSupplyDuration{value,unit}
         }
       }
     }
   }
 }
+
 
 {
   MedicationRequestByPatient(PatientID:"SMART-665677") {
