@@ -1,0 +1,7 @@
+query {
+  TinyMedicationRequest(PatientID: "SMART-665677") {
+    MedicationName
+    Instructions
+    Fields(fields: ["dispenseRequest.quantity.unit", "medicationCodeableConcept.coding"])
+  }
+}

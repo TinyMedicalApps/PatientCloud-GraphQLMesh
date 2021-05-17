@@ -1,16 +1,28 @@
 sources:
   - name: LogicaHealth Sandbox v3
     handler:
-        fhir:
-          endpoint: https://api.logicahealth.org/PatientCloud10STU3/open
+      fhir:
+        endpoint: https://api.logicahealth.org/PatientCloud10STU3/open
+
+additionalTypeDefs: |
+  type TinyMedicationResponse {
+    MedicationName: String 
+    Instructions: String
+    Fields(fields: [String]): JSON
+  }
+  extend type Query {
+    TinyMedicationRequest(PatientID: String!, dates: String): [TinyMedicationResponse]
+  }
+additionalResolvers:
+  - ./src/tinyMedicationRequest.js
 
 serve:
   exampleQuery: ./example-queries/*.graphql
   port: ${PORT?}
   cors:
-    origin: 
+    origin:
       - "*"
-    allowedHeaders: 
+    allowedHeaders:
       - "Origin"
       - "Content-Type"
       - "Authorization"
