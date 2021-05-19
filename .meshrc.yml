@@ -10,11 +10,26 @@ additionalTypeDefs: |
     Instructions: String
     Fields(fields: [String]): JSON
   }
+  type PeriodStat {
+    AVGMeanValue: Float
+    Date: String
+  }
+  type AllTimeStat {
+    BestValue: Float
+    EIGHTYPCBestValue: Float
+    AVGMeanValue: Float
+  }
+  type TinyPeakFlowResponse {
+    statsForPeriod: [PeriodStat]
+    statsAllTime: AllTimeStat
+  }
   extend type Query {
     TinyMedicationRequest(PatientID: String!, dates: String): [TinyMedicationResponse]
+    TinyPeakFlowStats(PatientID: String!, dates: String): TinyPeakFlowResponse
   }
 additionalResolvers:
   - ./src/tinyMedicationRequest.js
+  - ./src/tinyPeakFlowStats.js
 
 serve:
   exampleQuery: ./example-queries/*.graphql

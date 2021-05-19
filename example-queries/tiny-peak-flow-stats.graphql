@@ -1,0 +1,13 @@
+query {
+  TinyPeakFlowStats(PatientID: "SMART-665677") {
+    statsForPeriod {
+      AVGMeanValue
+      Date
+    }
+    statsAllTime {
+      BestValue
+      EIGHTYPCBestValue
+      AVGMeanValue
+    }
+  }
+}

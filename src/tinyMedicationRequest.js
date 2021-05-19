@@ -25,9 +25,13 @@ const resolvers = {
     Fields: async (parent, args, context, info) => {
       const { fields } = args;
 
-      return fields.reduce((fieldAccumulator, currentField) => {
-        return { ...fieldAccumulator, [currentField]: _.get(parent, currentField) };
-      }, {});
+      if (fields) {
+        return fields.reduce((fieldAccumulator, currentField) => {
+          return { ...fieldAccumulator, [currentField]: _.get(parent, currentField) };
+        }, {});
+      } else {
+        return null;
+      }
     },
   },
   Query: {
@@ -38,7 +42,6 @@ const resolvers = {
       // context contains all the datasources defined in ".meshrc.yaml", in this case "LogicaHealth Sandbox v3"
       // then MedicationRequestByPatient is called in order to retrieve the data we want
       const res = await context["LogicaHealth Sandbox v3"].api.MedicationRequestByPatient({ PatientID });
-
       // res is { entry: [...list of entries] }
       // for each entry, parse and return the full data object
       return res.entry.map(async (el) => {
@@ -46,10 +49,13 @@ const resolvers = {
           const singleEntry = await fetch(el.fullUrl, {
             method: "GET",
             redirect: "follow",
+            headers: {
+              "Content-Type": "application/json",
+            },
           });
 
           // need to get response as text, then parse as object
-          return JSON.parse(await singleEntry.text());
+          return singleEntry.json();
         } catch (error) {
           console.log("Error:", error);
           return {};
