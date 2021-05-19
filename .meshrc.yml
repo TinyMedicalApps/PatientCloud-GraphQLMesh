@@ -5,6 +5,18 @@ sources:
         endpoint: https://api.logicahealth.org/PatientCloud10STU3/open
 
 additionalTypeDefs: |
+  enum PeriodInterval {
+    MONTH
+    WEEK
+  }
+  input TimeInterval {
+    period: PeriodInterval!
+    range: Int
+  }
+  enum OrderDirection {
+    ASC
+    DESC
+  }
   type TinyMedicationResponse {
     MedicationName: String 
     Instructions: String
@@ -12,7 +24,8 @@ additionalTypeDefs: |
   }
   type PeriodStat {
     AVGMeanValue: Float
-    Date: String
+    DateNumber: String
+    DateLabel: String
   }
   type AllTimeStat {
     BestValue: Float
@@ -25,7 +38,7 @@ additionalTypeDefs: |
   }
   extend type Query {
     TinyMedicationRequest(PatientID: String!, dates: String): [TinyMedicationResponse]
-    TinyPeakFlowStats(PatientID: String!, dates: String): TinyPeakFlowResponse
+    TinyPeakFlowStats(PatientID: String!, interval: TimeInterval!, dateorder: OrderDirection!): TinyPeakFlowResponse
   }
 additionalResolvers:
   - ./src/tinyMedicationRequest.js
