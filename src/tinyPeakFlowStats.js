@@ -31,7 +31,7 @@ const ObservationByPatientWithArgs = async (args) => {
   const { PatientID } = args;
 
   const res = await fetch(
-    `https://api.logicahealth.org/PatientCloud401/open/Observation?patient=${PatientID}&_total=accurate&_count=1000&code:code=19935-6`,
+    `https://api.logicahealth.org/PatientCloud10STU3/open/Observation?${new URLSearchParams({ patient: PatientID })}`,
     {
       method: "GET",
       redirect: "follow",
@@ -47,8 +47,7 @@ const ObservationByPatientWithArgs = async (args) => {
 const resolvers = {
   TinyPeakFlowResponse: {
     statsForPeriod: async (parent, args, context, info) => {
-      // console.log(moment(parent.effectiveDateTime).format("MM YYYY"));
-
+      // for each grouped observation, calculate avg
       return Object.entries(parent.grouped).map(([key, obs]) => {
         return {
           AVGMeanValue: sumValueQuantity(obs) / obs.length,
@@ -57,6 +56,7 @@ const resolvers = {
       });
     },
     statsAllTime: async (parent, args, context, info) => {
+      // for all observations, calculate avg and best value
       const bestValue = Math.max(
         ...parent.all.map((e) => {
           return e.valueQuantity.value;
@@ -75,14 +75,12 @@ const resolvers = {
       // take PatientID from query arguments
       const { PatientID } = args;
 
-      // context contains all the datasources defined in ".meshrc.yaml", in this case "LogicaHealth Sandbox v3"
-      // then ObservationByPatient is called in order to retrieve the data we want
-      const res = await ObservationByPatientWithArgs({
-        PatientID,
-      });
-      // const res = await context["LogicaHealth Sandbox v3"].api.ObservationByPatient({
+      // const res = await ObservationByPatientWithArgs({
       //   PatientID,
       // });
+      const res = await context["LogicaHealth Sandbox v3"].api.ObservationByPatient({
+        PatientID,
+      });
 
       // res is { entry: [...list of entries] }
       // for each entry, parse and return the full data object
@@ -92,19 +90,20 @@ const resolvers = {
             const singleEntry = await fetch(el.fullUrl, {
               method: "GET",
               redirect: "follow",
+              headers: {
+                "Content-Type": "application/json",
+              },
             });
 
-            // need to get response as text, then parse as object
-            return await JSON.parse(await singleEntry.text());
+            return await singleEntry.json();
           } catch (error) {
-            console.log("Error:", error);
-            return {};
+            throw new Error(error);
           }
         })
       )
         .then((result) => {
-          // console.log("result", result);
-
+          // flatten the observations array, because some might have multiple values on the same instance
+          // then group by same month+year
           const groupBy = flattenObservations(result).reduce((accumulator, observation) => {
             const monthyear = moment(observation.effectiveDateTime).format("MM_YYYY");
 
@@ -117,10 +116,11 @@ const resolvers = {
             return accumulator;
           }, {});
 
+          // return grouped observations as well as the entire flattened list, so underlying resolvers can access these data
           return { grouped: groupBy, all: flattenObservations(result) };
         })
         .catch((error) => {
-          console.log(error);
+          throw new Error(error);
         });
     },
   },
