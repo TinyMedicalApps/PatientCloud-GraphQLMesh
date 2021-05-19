@@ -31,7 +31,12 @@ const ObservationByPatientWithArgs = async (args) => {
   const { PatientID } = args;
 
   const res = await fetch(
-    `https://api.logicahealth.org/PatientCloud10STU3/open/Observation?${new URLSearchParams({ patient: PatientID })}`,
+    `https://api.logicahealth.org/PatientCloud401/open/Observation?${new URLSearchParams({
+      patient: PatientID,
+      _total: "accurate",
+      _count: 1000,
+      "code:code": "19935-6",
+    })}`,
     {
       method: "GET",
       redirect: "follow",
@@ -45,13 +50,27 @@ const ObservationByPatientWithArgs = async (args) => {
 };
 
 const resolvers = {
+  // enum define a restricted, pre-defined set of values
+  // https://graphql.org/learn/schema/#enumeration-types
+  PeriodInterval: {
+    MONTH: "month",
+    WEEK: "week",
+  },
+  OrderDirection: {
+    ASC: "asc",
+    DESC: "desc",
+  },
   TinyPeakFlowResponse: {
     statsForPeriod: async (parent, args, context, info) => {
       // for each grouped observation, calculate avg
+      const { period, range = null } = parent.interval;
+      const incomingFormat = period === "month" ? "MM_YYYY" : "WW_YYYY";
+
       return Object.entries(parent.grouped).map(([key, obs]) => {
         return {
           AVGMeanValue: sumValueQuantity(obs) / obs.length,
-          Date: moment(key, "MM_YYYY").format("MMMM YYYY"),
+          DateLabel: moment(key, incomingFormat).format(`${period === "month" ? "MMMM YYYY" : "[Week] W YYYY"}`),
+          DateNumber: moment(key, incomingFormat).format(`${period === "month" ? "DD-MM-YYYY" : "d-WW-YYYY"}`),
         };
       });
     },
@@ -72,15 +91,18 @@ const resolvers = {
   },
   Query: {
     TinyPeakFlowStats: async (parent, args, context, info) => {
-      // take PatientID from query arguments
-      const { PatientID } = args;
+      // interval is set "month" as default
+      const { PatientID, interval, dateorder = "desc" } = args;
 
-      // const res = await ObservationByPatientWithArgs({
-      //   PatientID,
-      // });
-      const res = await context["LogicaHealth Sandbox v3"].api.ObservationByPatient({
+      const { period, range = null } = interval;
+
+      const res = await ObservationByPatientWithArgs({
         PatientID,
       });
+
+      // const res = await context["LogicaHealth Sandbox v3"].api.ObservationByPatient({
+      //   PatientID,
+      // });
 
       // res is { entry: [...list of entries] }
       // for each entry, parse and return the full data object
@@ -104,20 +126,40 @@ const resolvers = {
         .then((result) => {
           // flatten the observations array, because some might have multiple values on the same instance
           // then group by same month+year
-          const groupBy = flattenObservations(result).reduce((accumulator, observation) => {
-            const monthyear = moment(observation.effectiveDateTime).format("MM_YYYY");
+          const filteredObservations = flattenObservations(result)
+            // sort by given dateorder
+            .sort((a, b) => {
+              if (dateorder === "desc") {
+                return moment(b.effectiveDateTime).diff(moment(a.effectiveDateTime));
+              } else {
+                return moment(a.effectiveDateTime).diff(moment(b.effectiveDateTime));
+              }
+            })
+            // filter array if a range is given
+            .filter((elem) => {
+              if (range) {
+                // check if current date is in the range (so in the last <range> <period>)
+                return moment(elem.effectiveDateTime).isAfter(moment().subtract(range, period));
+              } else {
+                return true;
+              }
+            });
 
-            if (accumulator[monthyear]) {
-              accumulator[monthyear].push(observation);
+          const groupBy = filteredObservations.reduce((accumulator, observation) => {
+            const formattedDate = moment(observation.effectiveDateTime).format(
+              period === "month" ? "MM_YYYY`" : "WW_YYYY"
+            );
+
+            if (accumulator[formattedDate]) {
+              accumulator[formattedDate].push(observation);
             } else {
-              accumulator[monthyear] = [observation];
+              accumulator[formattedDate] = [observation];
             }
 
             return accumulator;
           }, {});
-
           // return grouped observations as well as the entire flattened list, so underlying resolvers can access these data
-          return { grouped: groupBy, all: flattenObservations(result) };
+          return { grouped: groupBy, all: filteredObservations, interval };
         })
         .catch((error) => {
           throw new Error(error);
