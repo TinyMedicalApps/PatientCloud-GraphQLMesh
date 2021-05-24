@@ -1,6 +1,6 @@
 query {
-  TinyPeakFlowStats(PatientID: "SMART-665677", interval: { period: MONTH, range: 50 }, dateorder: DESC) {
-    statsForPeriod {
+  TinyPeakFlowStats(PatientID: "SMART-665677", date_range: { interval: MONTH, limit: 50 }) {
+    statsForPeriod(order: DESC) {
       AVGMeanValue
       DateLabel
       DateNumber
@@ -8,6 +8,7 @@ query {
     statsAllTime {
       BestValue
       EIGHTYPCBestValue
+      FIFTYPCBestValue
       AVGMeanValue
     }
   }

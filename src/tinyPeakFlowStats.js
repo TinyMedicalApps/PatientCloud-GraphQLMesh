@@ -63,38 +63,56 @@ const resolvers = {
   TinyPeakFlowResponse: {
     statsForPeriod: async (parent, args, context, info) => {
       // for each grouped observation, calculate avg
-      const { period, range = null } = parent.interval;
-      const incomingFormat = period === "month" ? "MM_YYYY" : "WW_YYYY";
+      const { order } = args;
+      const { interval, limit = null } = parent.date_range;
+      const incomingFormat = interval === "month" ? "MM_YYYY" : "WW_YYYY";
+      const resultFormat = interval === "month" ? "DD-MM-YYYY" : "d-WW-YYYY";
 
-      return Object.entries(parent.grouped).map(([key, obs]) => {
-        return {
-          AVGMeanValue: sumValueQuantity(obs) / obs.length,
-          DateLabel: moment(key, incomingFormat).format(`${period === "month" ? "MMMM YYYY" : "[Week] W YYYY"}`),
-          DateNumber: moment(key, incomingFormat).format(`${period === "month" ? "DD-MM-YYYY" : "d-WW-YYYY"}`),
-        };
-      });
+      return (
+        Object.entries(parent.grouped)
+          .map(([key, obs]) => {
+            return {
+              AVGMeanValue: sumValueQuantity(obs) / obs.length,
+              DateLabel: moment(key, incomingFormat).format(`${interval === "month" ? "MMMM YYYY" : "[Week] W YYYY"}`),
+              DateNumber: moment(key, incomingFormat).format(resultFormat),
+            };
+          })
+          // sort by given dateorder
+          .sort((a, b) => {
+            if (order === "desc") {
+              return moment(b.DateNumber, resultFormat).diff(moment(a.DateNumber, resultFormat));
+            } else {
+              return moment(a.DateNumber, resultFormat).diff(moment(b.DateNumber, resultFormat));
+            }
+          })
+      );
     },
     statsAllTime: async (parent, args, context, info) => {
       // for all observations, calculate avg and best value
-      const bestValue = Math.max(
-        ...parent.all.map((e) => {
-          return e.valueQuantity.value;
-        })
-      );
+      if (parent.all && parent.all.length) {
+        const bestValue = Math.max(
+          ...parent.all.map((e) => {
+            return e.valueQuantity.value;
+          })
+        );
 
-      return {
-        BestValue: bestValue,
-        EIGHTYPCBestValue: bestValue * 0.8,
-        AVGMeanValue: sumValueQuantity(parent.all) / parent.all.length,
-      };
+        return {
+          BestValue: bestValue,
+          EIGHTYPCBestValue: bestValue * 0.8,
+          FIFTYPCBestValue: bestValue * 0.5,
+          AVGMeanValue: sumValueQuantity(parent.all) / parent.all.length,
+        };
+      } else {
+        return {};
+      }
     },
   },
   Query: {
     TinyPeakFlowStats: async (parent, args, context, info) => {
-      // interval is set "month" as default
-      const { PatientID, interval, dateorder = "desc" } = args;
+      // date_range is set "month" as default
+      const { PatientID, date_range } = args;
 
-      const { period, range = null } = interval;
+      const { interval, limit = null } = date_range;
 
       const res = await ObservationByPatientWithArgs({
         PatientID,
@@ -127,19 +145,11 @@ const resolvers = {
           // flatten the observations array, because some might have multiple values on the same instance
           // then group by same month+year
           const filteredObservations = flattenObservations(result)
-            // sort by given dateorder
-            .sort((a, b) => {
-              if (dateorder === "desc") {
-                return moment(b.effectiveDateTime).diff(moment(a.effectiveDateTime));
-              } else {
-                return moment(a.effectiveDateTime).diff(moment(b.effectiveDateTime));
-              }
-            })
-            // filter array if a range is given
+            // filter array if a limit is given
             .filter((elem) => {
-              if (range) {
-                // check if current date is in the range (so in the last <range> <period>)
-                return moment(elem.effectiveDateTime).isAfter(moment().subtract(range, period));
+              if (limit) {
+                // check if current date is in the limit (so in the last <limit> <interval>)
+                return moment(elem.effectiveDateTime).isAfter(moment().subtract(limit, interval));
               } else {
                 return true;
               }
@@ -147,7 +157,7 @@ const resolvers = {
 
           const groupBy = filteredObservations.reduce((accumulator, observation) => {
             const formattedDate = moment(observation.effectiveDateTime).format(
-              period === "month" ? "MM_YYYY`" : "WW_YYYY"
+              interval === "month" ? "MM_YYYY`" : "WW_YYYY"
             );
 
             if (accumulator[formattedDate]) {
@@ -159,7 +169,8 @@ const resolvers = {
             return accumulator;
           }, {});
           // return grouped observations as well as the entire flattened list, so underlying resolvers can access these data
-          return { grouped: groupBy, all: filteredObservations, interval };
+
+          return { grouped: groupBy, all: filteredObservations, date_range };
         })
         .catch((error) => {
           throw new Error(error);

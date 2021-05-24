@@ -10,8 +10,8 @@ additionalTypeDefs: |
     WEEK
   }
   input TimeInterval {
-    period: PeriodInterval!
-    range: Int
+    interval: PeriodInterval!
+    limit: Int
   }
   enum OrderDirection {
     ASC
@@ -30,15 +30,16 @@ additionalTypeDefs: |
   type AllTimeStat {
     BestValue: Float
     EIGHTYPCBestValue: Float
+    FIFTYPCBestValue: Float
     AVGMeanValue: Float
   }
   type TinyPeakFlowResponse {
-    statsForPeriod: [PeriodStat]
+    statsForPeriod(order: OrderDirection): [PeriodStat]
     statsAllTime: AllTimeStat
   }
   extend type Query {
     TinyMedicationRequest(PatientID: String!, dates: String): [TinyMedicationResponse]
-    TinyPeakFlowStats(PatientID: String!, interval: TimeInterval!, dateorder: OrderDirection!): TinyPeakFlowResponse
+    TinyPeakFlowStats(PatientID: String!, date_range: TimeInterval!): TinyPeakFlowResponse
   }
 additionalResolvers:
   - ./src/tinyMedicationRequest.js
