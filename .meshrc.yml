@@ -21,6 +21,7 @@ additionalTypeDefs: |
     MedicationName: String 
     Instructions: String
     Fields(fields: [String]): JSON
+    StartDate: String
   }
   type PeriodStat {
     AVGMeanValue: Float

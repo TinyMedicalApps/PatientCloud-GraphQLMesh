@@ -33,6 +33,15 @@ const resolvers = {
         return null;
       }
     },
+    StartDate: async (parent) => {
+      const { dosageInstruction } = parent;
+
+      if (dosageInstruction && dosageInstruction.length) {
+        return moment(dosageInstruction[0].timing.repeat.boundsPeriod.start).format("DD/MM/YYYY");
+      } else {
+        return null;
+      }
+    },
   },
   Query: {
     TinyMedicationRequest: async (parent, args, context, info) => {
