@@ -1,0 +1,27 @@
+fragment ObservationCore on Bundle {
+  entry {
+    resource {
+      ... on Observation {
+        category{
+          coding{display}
+        }
+        code{
+          coding{code,display}
+        }
+        effectiveDateTime
+        valueQuantity{value,unit}
+        component{
+          code{coding{code,display}}
+          valueQuantity{value,unit}
+        }
+        
+      }
+    }
+  }
+}
+
+{
+  ObservationByPatient(PatientID:"SMART-665677") {
+    ... ObservationCore
+  }  
+}
