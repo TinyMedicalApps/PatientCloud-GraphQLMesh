@@ -18,20 +18,56 @@ additionalTypeDefs: |
     DESC
   }
   type TinyMedicationResponse {
+    """
+    Name of the Medication being prescribed. From the FHIR MedicationStatement Resource. Maps to entry.resource.medicationCodeableConcept.text.
+    """
     MedicationName: String 
+    """
+    Patient instructions for taking medication. Connecting together relevant information from MedicationRequest resource: dosageInstruction.text + ' ' + dispenseRequest.quantity.unit + '. Starting on  ' + date(dosageInstruction.timing.repeat.boundsPeriod.start, "MMMM Do, YYYY") + ', ' + dispenseRequest.quantity.value + ' ' + dispenseRequest.quantity.unit + 's (supply for '+ expectedSupplyDuration.value + ' ' + expectedSupplyDuration.unit + ').'
+    """
     Instructions: String
+    """
+    All fields available in original FHIR resource. JSON object using flattened name for parameter variable. E.g. "Fields": { "dosageInstruction.text": "1 daily", "medicationCodeableConcept.coding.code": "316133"}
+    """
     Fields(fields: [String]): JSON
+    """
+    Start Date for taking medication from MedicationRequest resource. Using Moment.js for formatting. date(dosageInstruction.timing.repeat.boundsPeriod.start, "DD/MM/YYYY")
+    """
     StartDate: String
   }
+  """
+  Stats for selected Time Period
+  """
   type PeriodStat {
+    """
+    Mean observation value for that month or week (searches entry.resource.valueQuantity.value)
+    """
     AVGMeanValue: Float
     DateNumber: String
+    """
+    (Month, Year) or (Week, Year) (searches entry.resource.effectiveDateTime) 
+    """
     DateLabel: String
   }
+  """
+  Stats for overall time period
+  """
   type AllTimeStat {
+    """
+    Searches for all observation values in the system and returns highest (best) value for peak flow.
+    """
     BestValue: Float
+    """
+    Creates a value equal to 80% of the best value. Used to create an orange warning.
+    """
     EIGHTYPCBestValue: Float
+    """
+    Creates a value equal to 50% of the best value. Used to create a red warning.
+    """
     FIFTYPCBestValue: Float
+    """
+    Average overall Mean Value
+    """
     AVGMeanValue: Float
   }
   type TinyPeakFlowResponse {
