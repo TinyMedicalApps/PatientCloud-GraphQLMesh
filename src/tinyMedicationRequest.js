@@ -11,16 +11,18 @@ const resolvers = {
       const { dosageInstruction, dispenseRequest } = parent;
       const { expectedSupplyDuration, quantity } = dispenseRequest;
 
+      const formattedUnit = quantity.unit.replace(/[{}]/g, "");
+
       // being dosageInstruction an array, reduce it to a single string
       const dosageInstructionsText = dosageInstruction.reduce((textAccumulator, instruction) => {
         const { timing, text } = instruction;
 
-        return `${textAccumulator} ${text} ${quantity.unit}. Starting on ${moment(
+        return `${textAccumulator} ${text} ${formattedUnit}. Starting on ${moment(
           timing.repeat.boundsPeriod.start
         ).format("MMMM Do, YYYY")}`;
       }, "");
 
-      return `${dosageInstructionsText}. ${quantity.value} ${quantity.unit}s (supply for ${expectedSupplyDuration.value} ${expectedSupplyDuration.unit}).`;
+      return `${dosageInstructionsText}. ${quantity.value} ${formattedUnit}s (supply for ${expectedSupplyDuration.value} ${expectedSupplyDuration.unit}).`;
     },
     Fields: async (parent, args, context, info) => {
       const { fields } = args;
